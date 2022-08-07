@@ -178,15 +178,20 @@ habilidad), y de los pesos asociados a estos. El Teorema de Byes es:
 
 $$ P(\\theta\|\\textbf{x}) = \\frac{P(\\textbf{x}\|\\theta)P(\\theta )}{P(\\textbf{x})}$$
 
-En este caso, no nos interesa el resultado del Teorema, pero sí algunas
-de las características. Principalmente la posibilidad de calcular p(x),
-esto es la probabilidad de observar un cierto patrón de respuestas
-
-En concreto, la estimación por marginal maximum likelihood, viene dada
-por la posibilidad de calcular la probabilidad marginal del patrón de
-respuestas, a partir de la descomposición marginal condicional. Esto es,
-la probabilidad marginal de un fenómeno es igual a la suma de las
-probabilidades condicionales del mismo, bajo condiciones exhaustivas.
+En este caso, nos interesa el resultado del Teorema, la probabilidad de
+$ $ dado un patrón, para cada patrón observado en los datos. Lo que
+hacemos es determinar qué tan probable es una cierta habilidad dado un
+patrón de respuesta. Si hacemos esto para cada patrón observado y para
+cada nodo, podemos luego determinar cuánta gente esperamos encontrar en
+cada nodo dentro del total de gente que tuvo un patrón de respuesta. Por
+ejemplo, si 10 personas tienen el patrón 1,1,0,0,1, podemos estimar
+cuánta gente de esas 10 personas esperamos que esté en qué lugar de
+habilidad. La mayoría, en este caso, tal vez esté en un nivel medio de
+habilidad, y muy pocas en el nivel bajo o alto. Si hacemos estos para
+cada patrón, luego podemos calcular cuánta gente esperamos en cada nodo
+(del total de los evaluados) y también cuánta gente esperamos que haya
+tenido correctamente respondido un ítem (ej. el ítem 1), al sumar a las
+personas que tuve correcto tal ítem de acuerdo al patrón de respuesta.
 
 Dos características de la estimación: distribución a priori de la
 variable latente (habilidad) y dicretización de la misma. Para este
@@ -606,7 +611,12 @@ tenga un ítem correcto crj, tiende a nrj en la medida en que Xr es más
 alto, ¿por qué pasa esto? Hay que centrarse en aquello en lo cual
 difiere la estimación del número de personas que se espera tengan un
 determinado ítem correcto. No difieren en los ponderadores (son
-simétricos), y levemente en el posterior.
+simétricos), difieren en el posterior. Lo que indica que es la
+probabilidad posterior tiende a ser más alta para valores altos de
+habilidad cuando el patrón de respuesta tiene un alto número de
+respuestas correctas, y su probabilidad posterior tiende a ser más baja
+cuando hay muchas respuestas incorrectas. Lo opuesto pasa con los
+valores de habilidad bajos. Esto es básicamente por la verosimilitud.
 
 ``` r
 cbind(items1$Item_1,lik_matriz[,2],lik_matriz[,9],items1$patron)
@@ -640,6 +650,27 @@ cbind(items1$Item_1,lik_matriz[,2],lik_matriz[,9],items1$patron)
     ## liks "1"  "0.0000711108227723032"   "0.00159615143142805"     "11001"
     ## liks "1"  "0.0000711108227723032"   "0.00159615143142805"     "10101"
     ## liks "0"  "0.00000316808857592524"  "0.0358271679714287"      "01111"
+
+Si tomamos el 2do nodo, y el 9no nodo, vemos que la probabilidad al
+interior del nodo (lo único que importa es lo que ocurre al interior del
+nodo) es más alta para el nodo de habilidad alta cuando el patrón se
+compone mayoritariamente de 1, y es muy baja cuando se compone
+mayoritariamente de 0. Lo opuesto ocurre en el nodo de habilidad bajo.
+
+Podemos ver la porporción esperada de respuestas correctas para cada
+nodo en el ítem 1:
+
+``` r
+plot(Xr,crj/nrj)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
+
+Dado el modelo, eso es lo que se espera para el ítem 1. Ahora podemos
+buscar parámetros que permitan obtener un valor mínimo de diferencia de
+aquella curva, que aquella obtenida por los parámetros de los ítems del
+modelo, en la función característica del ítem. Esto se resuelve
+optimizando la siguiente función:
 
 ``` r
 pj_it1 = (1/(1+exp(-a[1]*(Xr-b[1]))))
